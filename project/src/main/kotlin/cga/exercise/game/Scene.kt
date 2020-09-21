@@ -23,7 +23,7 @@ import kotlin.math.PI
 /**
  * Created by Fabian on 16.09.2017.
  */
-class Scene(private val window: GameWindow) {
+class Scene(_window: GameWindow): abstractScene(_window) {
     private val tronShader:ShaderProgram = ShaderProgram("assets/shaders/tron_vert.glsl", "assets/shaders/tron_frag.glsl")
     private val tronShaderMeme:ShaderProgram = ShaderProgram("assets/shaders/tron_vert2.glsl", "assets/shaders/tron_frag.glsl")
     private val planeObj: OBJLoader.OBJResult = OBJLoader.loadOBJ("assets/models/ground.obj")
@@ -45,15 +45,6 @@ class Scene(private val window: GameWindow) {
     //scene setup
     init {
 
-        //initial opengl state
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); GLError.checkThrow()
-        glEnable(GL_CULL_FACE)
-        glFrontFace(GL_CCW)
-        glCullFace(GL_BACK)
-        glEnable(GL_DEPTH_TEST); GLError.checkThrow()
-        glDepthFunc(GL_LESS); GLError.checkThrow()
-
-
         val stride: Int = 8 * 4
         val attrPos = VertexAttribute(3, GL_FLOAT, stride, 0)      //position
         val attrTC = VertexAttribute(2, GL_FLOAT, stride, 3 * 4)   //textureCoordinate
@@ -74,7 +65,7 @@ class Scene(private val window: GameWindow) {
         planeMesh = Mesh(planeObjMesh.vertexData, planeObjMesh.indexData, vertexAttributes, material)
 
         //Set Player as the Parent of the Lightcycle
-        lightCycle.parentNode = player
+        lightCycle.setParent(player)
 
         //Create Renderable of of the plane Mesh
         plane = Renderable(mutableListOf(planeMesh))
@@ -101,7 +92,7 @@ class Scene(private val window: GameWindow) {
 
 
 
-    fun render(dt: Float, t: Float) {
+    override fun render(dt: Float, t: Float) {
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
         tronShader.use()
         camera.bind(tronShader)
@@ -115,7 +106,7 @@ class Scene(private val window: GameWindow) {
         plane.render(tronShader)
     }
 
-    fun update(dt: Float, t: Float) {
+    override fun update(dt: Float, t: Float) {
         var deltaRot = 0f
         val rotSpeed = 2f
         val maxSpeed = 15f
@@ -147,9 +138,9 @@ class Scene(private val window: GameWindow) {
         }
     }
 
-    fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {}
+    override fun onKey(key: Int, scancode: Int, action: Int, mode: Int) {}
 
-    fun onMouseMove(xpos: Double, ypos: Double) {
+    override fun onMouseMove(xpos: Double, ypos: Double) {
         if(firstMouse){
             oldx = xpos
             firstMouse = false
@@ -160,7 +151,4 @@ class Scene(private val window: GameWindow) {
         }
 
     }
-
-
-    fun cleanup() {}
 }

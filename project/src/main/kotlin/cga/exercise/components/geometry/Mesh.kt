@@ -26,7 +26,7 @@ import org.lwjgl.opengl.*
  */
 class Mesh(vertexdata: FloatArray, indexdata: IntArray, attributes: Array<VertexAttribute>, material: Material? = null) {
     //private data
-    private var material = material
+    var material = material
     private var vao = glGenVertexArrays()
     private var vbo = glGenBuffers()
     private var ibo = glGenBuffers()

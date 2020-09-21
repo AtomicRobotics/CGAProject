@@ -1,11 +1,44 @@
 package cga.exercise.components.geometry
 
-import org.joml.Matrix4f
-import org.joml.Vector3f
-import org.joml.Vector4f
+import org.joml.*
 
-open class Transformable(var parentNode:Transformable? = null): ITransformable {
+open class Transformable(private var parentNode:Transformable? = null): ITransformable {
     private var modelMatrix:Matrix4f = Matrix4f(Vector4f(1f,0f,0f,0f),Vector4f(0f,1f,0f,0f),Vector4f(0f,0f,1f,0f),Vector4f(0f,0f,0f,1f))
+
+    private var childNodes = ArrayList<Transformable>()
+    private var scale = Vector3f(1f,1f,1f)
+
+    init{
+        parentNode?.setChild(this)
+    }
+
+    fun setChild(child:Transformable){
+        childNodes.add(child)
+        child.setParent(this)
+    }
+
+    fun removeParent(){
+        parentNode?.let{
+            it.childNodes.remove(this)
+        }
+        parentNode = null
+    }
+
+    fun setParent(parent:Transformable){
+        parentNode?.let{
+            removeParent()
+        }
+        parentNode = parent
+    }
+
+    fun getParent():Transformable?{
+        return parentNode
+    }
+
+    fun getChildren():ArrayList<Transformable>{
+        return ArrayList(childNodes)
+    }
+
     override fun rotateLocal(pitch: Float, yaw: Float, roll: Float) {
         modelMatrix.
                 rotateX(pitch).
@@ -20,6 +53,17 @@ open class Transformable(var parentNode:Transformable? = null): ITransformable {
                 rotate(yaw,Vector3f(0f,1f,0f)).
                 rotate(roll, Vector3f(0f,0f,1f)).
                 translate(altMidpoint.mul(-1f))
+    }
+
+    fun setRotation(rotation:Quaternionf){
+        var a = getPosition()
+        modelMatrix.rotation(rotation)
+        setPosition(a)
+    }
+
+    fun getRotation():Quaternionf{
+        var a = Quaternionf()
+        return modelMatrix.getNormalizedRotation(a)
     }
 
     override fun translateLocal(deltaPos: Vector3f) {
@@ -38,9 +82,15 @@ open class Transformable(var parentNode:Transformable? = null): ITransformable {
     }
 
     override fun scaleLocal(scale: Vector3f) {
+        this.scale.mul(scale)
         modelMatrix.scale(scale)
     }
 
+    fun setPosition(v:Vector3f){
+        modelMatrix.set(3,0, v.x)
+        modelMatrix.set(3,1, v.y)
+        modelMatrix.set(3,2, v.z)
+    }
     override fun getPosition(): Vector3f {
         return modelMatrix.normalize3x3().getColumn(3, Vector3f(0f))
     }
@@ -83,5 +133,9 @@ open class Transformable(var parentNode:Transformable? = null): ITransformable {
 
     override fun getLocalModelMatrix(): Matrix4f {
         return Matrix4f(modelMatrix)
+    }
+
+    fun reset(){
+        modelMatrix = Matrix4f().identity()
     }
 }
